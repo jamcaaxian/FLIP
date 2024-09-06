@@ -1,0 +1,15 @@
+<html>
+    <body>
+        <script>
+const params = new URLSearchParams(window.location.search);
+const max = params.get('max') || null; // 默认值为100，如果没有传递max
+if (max) {
+    const randomNumber = String(Math.floor(Math.random() * max) + 1).padStart(5, '0');
+} else {
+    const randomNumber = '00001';
+}
+const url = 'https://moe.photo.blog/' + randomNumber;
+window.location.href = url;
+        </script>
+    </body>
+</html>
