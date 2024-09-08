@@ -9,7 +9,7 @@ fetch('./data.json').then(response => {
     return response.json();
 }).then(data => {
     const randomPost = String(Math.floor(Math.random() * data.postCount) + 1).padStart(5, '0');
-    window.location.href = data.url + "/" + randomPost;
+    window.location.href = `https://${data.url}/${randomPost}`;
 }).catch(error => {
     console.error('Error fetching JSON:', error);
 });
