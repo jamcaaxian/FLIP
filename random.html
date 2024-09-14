@@ -1,47 +1,19 @@
-<!DOCTYPE html>
 <html>
-<head>
-    <title>Random Page Redirector</title>
-</head>
-<body>
-    <script>
-        function getRandomItem(arr) {
-            const randomIndex = Math.floor(Math.random() * arr.length);
-            return arr[randomIndex];
-        }
+    <body>
+        <script>
 
-        function parseXML(responseText) {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(responseText, 'text/xml');
-            const urls = Array.from(xmlDoc.getElementsByTagName('loc')).map(loc => loc.textContent);
-            return urls;
-        }
+fetch('./data.json').then(response => {
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+    return response.json();
+}).then(data => {
+    const randomPost = String(Math.floor(Math.random() * data.postCount) + 1).padStart(5, '0');
+    window.location.href = `https://${data.url}${randomPost}`;
+}).catch(error => {
+    console.error('Error fetching JSON:', error);
+});
 
-        async function fetchAndRedirect() {
-            const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-            const targetUrl = 'https://www.epho.top/post-sitemap.xml';
-
-            try {
-                // Fetch the sitemap XML through CORS proxy
-                const response = await fetch(proxyUrl + targetUrl);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const xmlText = await response.text();
-                const urls = parseXML(xmlText);
-                
-                if (urls.length > 0) {
-                    const randomUrl = getRandomItem(urls);
-                    window.location.href = randomUrl;
-                } else {
-                    console.error('No URLs found in the XML');
-                }
-            } catch (error) {
-                console.error('Error fetching or parsing XML:', error);
-            }
-        }
-
-        fetchAndRedirect();
-    </script>
-</body>
+        </script>
+    </body>
 </html>
