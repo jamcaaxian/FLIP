@@ -1,19 +1,52 @@
+<!DOCTYPE html>
 <html>
-    <body>
-        <script>
+<head>
+    <title>Random Page Redirector</title>
+</head>
+<body>
+    <script>
+        function getRandomNumber() {
+            let randomNumber;
+            do {
+                randomNumber = Math.floor(Math.random() * 99999) + 1;
+            } while (randomNumber < 1 || randomNumber > 99999);
+            return randomNumber.toString().padStart(5, '0');
+        }
 
-fetch('./data.json').then(response => {
-    if (!response.ok) {
-        throw new Error('Network response was not ok');
-    }
-    return response.json();
-}).then(data => {
-    const randomPost = String(Math.floor(Math.random() * data.postCount) + 1).padStart(5, '0');
-    window.location.href = `https://${data.url}${randomPost}`;
-}).catch(error => {
-    console.error('Error fetching JSON:', error);
-});
+        function checkUrl(url) {
+            return fetch(url, { method: 'HEAD' })
+                .then(response => response.status === 200)
+                .catch(() => false);
+        }
 
-        </script>
-    </body>
+        async function redirectToValidPage(baseUrl) {
+            let validUrlFound = false;
+            
+            while (!validUrlFound) {
+                const randomNumber = getRandomNumber();
+                const url = `${baseUrl}${randomNumber}`;
+                
+                const isValid = await checkUrl(url);
+                if (isValid) {
+                    window.location.href = url;
+                    validUrlFound = true;
+                }
+            }
+        }
+
+        fetch('./data.json')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                redirectToValidPage(data.url);
+            })
+            .catch(error => {
+                console.error('Error fetching JSON:', error);
+            });
+    </script>
+</body>
 </html>
