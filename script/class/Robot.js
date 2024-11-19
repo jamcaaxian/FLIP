@@ -27,7 +27,7 @@ export default class Robot {
                 }
             });
         });
-        const position = movablePositions[Math.floor(Math.random() * movablePositions.length)]
+        const position = movablePositions[Math.floor(Math.random() * movablePositions.length)];
         setTimeout(() => {
             player.action({x: position[0], y: position[1]}, true);
         }, 500);
