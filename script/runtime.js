@@ -13,3 +13,6 @@ const player = new Player(chess, urlParams.get('team') || 'attacker');
 const robot = new Robot(chess, player.team === 'attacker'? 'defender' : 'attacker');
 window.player = player;
 window.robot = robot;
+if (player.team === 'defender') {
+    robot.action();
+}
