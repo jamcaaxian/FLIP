@@ -437,6 +437,10 @@ export default class Player {
                                     }
                                 }
                             }
+
+                            if (!isRobot) {
+                                window.robot.action();
+                            }
                         } else {
                             // 移动棋子
                             this.moveChess({x: x + 1, y: y + 1}, position);
