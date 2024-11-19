@@ -83,9 +83,9 @@ export default class Player {
         const isAllZero = sides => sides.every(side => side === 0);
 
         if (isAllOne(attackerSides) || isAllZero(defenderSides)) {
-            window.location.href("win.html?team=attacker");
+            window.location.href = "win.html?team=attacker";
         } else if (isAllOne(defenderSides) || isAllZero(attackerSides)) {
-            window.location.href("win.html?team=defender");
+            window.location.href = "win.html?team=defender";
         } else {
             return false;
         }
