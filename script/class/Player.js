@@ -2,7 +2,9 @@ export default class Player {
     constructor(chess, team, isRobot = false,highlightColor = {
         select: '#DDFF44',
         cursor: '#DDFF4480',
-        predict: '#3388FF'
+        predict: '#3388FF',
+        moveFrom: '#EE225580',
+        moveTo: '#EE2255'
     }, gamepadSensitivity = 0.5) {
         this.chess = chess;
         this.team = team;
@@ -10,6 +12,8 @@ export default class Player {
         this.highlightColor = highlightColor;
         this.gamepadSensitivity = gamepadSensitivity;
         this.chessboard = this.chess.chessboard;
+        this.moveFrom = {x: 0, y: 0};
+        this.moveTo = {x: 0, y: 0};
 
         this.data = this.resetData();
 
@@ -42,6 +46,11 @@ export default class Player {
 
     update() {
         this.clear();
+
+        if (this.moveFrom.x!== 0 && this.moveTo.x!== 0 && this.moveFrom.y!== 0 && this.moveTo.y!== 0) {
+            this.highlight(this.moveFrom.x, this.moveFrom.y, this.highlightColor.moveFrom);
+            this.highlight(this.moveTo.x, this.moveTo.y, this.highlightColor.moveTo);
+        }
 
         this.data.forEach((row, x) => {
             row.forEach((col, y) => {
@@ -123,7 +132,6 @@ export default class Player {
 
     highlight(x, y, color = 0) {
         this.data[x - 1][y - 1][0] = color;
-        console.log();
     }
 
     resetData() {
@@ -246,7 +254,7 @@ export default class Player {
         this.update();
     }
 
-    select(position, chess) {
+    select(position, chess, isRobot = false) {
         if (this.data[position.x - 1][position.y - 1][1].isSelectable) {
             if (this.data[position.x - 1][position.y - 1][1].isSelecting) {
                 this.data[position.x - 1][position.y - 1][1].isSelecting = false;
@@ -266,11 +274,15 @@ export default class Player {
                 });
 
                 this.data[position.x - 1][position.y - 1][1].isSelecting = true;
-                this.highlight(position.x, position.y, this.highlightColor.select);
+                if (!isRobot) {
+                    this.highlight(position.x, position.y, this.highlightColor.select);
+                }
 
                 this.predictor(position, chess).forEach(predictedPosition => {
                     this.data[predictedPosition.x - 1][predictedPosition.y - 1][1].isPredicting = true;
-                    this.highlight(predictedPosition.x, predictedPosition.y, this.highlightColor.predict);
+                    if (!isRobot) {
+                        this.highlight(predictedPosition.x, predictedPosition.y, this.highlightColor.predict);
+                    }
                 });
             }
         }
@@ -360,6 +372,9 @@ export default class Player {
                     this.data = this.resetData();
                     this.update();
 
+                    this.moveFrom = positionFrom;
+                    this.moveTo = positionTo;
+
                     status = true;
                 }
             });
@@ -393,53 +408,65 @@ export default class Player {
                 row.forEach((col, y) => {
                     if (col[1].isSelecting) {
                         if (position.x === 4 && position.y === 4) {
-                            // 中心位置, 上岛
-                            const attackerLands = [
-                                {x: 1, y: 6},
-                                {x: 1, y: 7},
-                                {x: 2, y: 7},
-                                {x: 7, y: 2},
-                                {x: 7, y: 1},
-                                {x: 6, y: 1}
-                            ];
+                            // 中心位置
+                            let side;
+                            Object.values(this.chess.data).forEach(team => {
+                                Object.values(team).forEach(chess => {
+                                    if (chess.x === x + 1 && chess.y === y + 1) {
+                                        side = chess.side;
+                                    }
+                                });
+                            });
 
-                            const defenderLands = [
-                                {x: 7, y: 2},
-                                {x: 7, y: 1},
-                                {x: 6, y: 1},
-                                {x: 1, y: 6},
-                                {x: 1, y: 7},
-                                {x: 2, y: 7}
-                            ];
-                            
-                            const isLandEmpty = (x, y) => 
-                                !Object.values(this.chess.data.attacker).find(item => item.x === x && item.y === y) &&
-                                !Object.values(this.chess.data.defender).find(item => item.x === x && item.y === y);
-                            
-                            if (Object.values(this.chess.data.attacker).find(item => item.x === x + 1 && item.y === y + 1)) {
-                                // 进攻方
-                                for (const land of attackerLands) {
-                                    if (isLandEmpty(land.x, land.y)) {
-                                        this.moveChess({x: x + 1, y: y + 1}, land);
-                                        this.flipChess(land);
-                                        break; // 成功找到并处理一个位置后退出
+                            if (side == 0) {
+                                // 是反棋, 上岛
+                                const attackerLands = [
+                                    {x: 1, y: 6},
+                                    {x: 1, y: 7},
+                                    {x: 2, y: 7},
+                                    {x: 7, y: 2},
+                                    {x: 7, y: 1},
+                                    {x: 6, y: 1}
+                                ];
+    
+                                const defenderLands = [
+                                    {x: 7, y: 2},
+                                    {x: 7, y: 1},
+                                    {x: 6, y: 1},
+                                    {x: 1, y: 6},
+                                    {x: 1, y: 7},
+                                    {x: 2, y: 7}
+                                ];
+                                
+                                const isLandEmpty = (x, y) => 
+                                    !Object.values(this.chess.data.attacker).find(item => item.x === x && item.y === y) &&
+                                    !Object.values(this.chess.data.defender).find(item => item.x === x && item.y === y);
+                                
+                                if (Object.values(this.chess.data.attacker).find(item => item.x === x + 1 && item.y === y + 1)) {
+                                    // 进攻方
+                                    for (const land of attackerLands) {
+                                        if (isLandEmpty(land.x, land.y)) {
+                                            this.moveChess({x: x + 1, y: y + 1}, land);
+                                            this.flipChess(land);
+                                            break; // 成功找到并处理一个位置后退出
+                                        }
                                     }
                                 }
-                            }
-                            
-                            if (Object.values(this.chess.data.defender).find(item => item.x === x + 1 && item.y === y + 1)) {
-                                // 防守方
-                                for (const land of defenderLands) {
-                                    if (isLandEmpty(land.x, land.y)) {
-                                        this.moveChess({x: x + 1, y: y + 1}, land);
-                                        this.flipChess(land);
-                                        break; // 成功找到并处理一个位置后退出
+                                
+                                if (Object.values(this.chess.data.defender).find(item => item.x === x + 1 && item.y === y + 1)) {
+                                    // 防守方
+                                    for (const land of defenderLands) {
+                                        if (isLandEmpty(land.x, land.y)) {
+                                            this.moveChess({x: x + 1, y: y + 1}, land);
+                                            this.flipChess(land);
+                                            break; // 成功找到并处理一个位置后退出
+                                        }
                                     }
                                 }
-                            }
 
-                            if (!isRobot) {
-                                window.robot.action();
+                                if (!isRobot) {
+                                    window.robot.action();
+                                }
                             }
                         } else {
                             // 移动棋子
@@ -453,7 +480,7 @@ export default class Player {
                                 this.flipChess(flipPosition);
                                 console.log(`Flip Chess at (${flipPosition.x}, ${flipPosition.y})`);
                             }
-                            
+
                             if (!isRobot) {
                                 window.robot.action();
                             }
@@ -461,6 +488,11 @@ export default class Player {
                     }
                 });
             });
+        }
+        if (this.moveFrom.x!== 0 && this.moveTo.x!== 0 && this.moveFrom.y!== 0 && this.moveTo.y!== 0) {
+            this.highlight(this.moveFrom.x, this.moveFrom.y, this.highlightColor.moveFrom);
+            this.highlight(this.moveTo.x, this.moveTo.y, this.highlightColor.moveTo);
+            this.update();
         }
     }
 
@@ -513,7 +545,9 @@ export default class Player {
                 if (x >= 1 && x <= 7 && y >= yRange[x][0] && y <= yRange[x][1]) {
                     if (!Object.values(this.chess.data.attacker).some(item => item.x === x && item.y === y) &&
                         !Object.values(this.chess.data.defender).some(item => item.x === x && item.y === y)) {
-                        result.push({x: x, y: y});
+                        if (!(x === 4 && y === 4)) {
+                            result.push({x: x, y: y});
+                        }
                     }
                 }
             });

@@ -18,7 +18,7 @@ export default class Robot {
         // 以下代码测试用
         const keys = Object.keys(this.chess.data[this.team]);
         const chess = this.chess.data[this.team][keys[Math.floor(Math.random() * keys.length)]];
-        player.select({x: chess.x, y: chess.y}, chess);
+        player.select({x: chess.x, y: chess.y}, chess, true);
         const movablePositions = [];
         player.data.forEach((row, i) => { // 外层数组遍历，记录行索引 i
             row.forEach((item, j) => { // 内层数组遍历，记录列索引 j
@@ -30,6 +30,6 @@ export default class Robot {
         const position = movablePositions[Math.floor(Math.random() * movablePositions.length)];
         setTimeout(() => {
             player.action({x: position[0], y: position[1]}, true);
-        }, 500);
+        }, 0);
     }
 }
