@@ -438,8 +438,6 @@ export default class Player {
                             });
 
                             if (side == 0) {
-                                record[5] = 1;
-
                                 // 是反棋, 上岛
                                 const attackerLands = [
                                     {x: 1, y: 6},
@@ -474,6 +472,7 @@ export default class Player {
                                             record[3] = land.x;
                                             record[4] = land.y;
                                             this.flipChess(land);
+                                            record[5] = 1;
                                             record[6] = land.x;
                                             record[7] = land.y;
                                             this.chessboard.land.push(1);
@@ -493,6 +492,7 @@ export default class Player {
                                             record[3] = land.x;
                                             record[4] = land.y;
                                             this.flipChess(land);
+                                            record[5] = 1;
                                             record[6] = land.x;
                                             record[7] = land.y;
                                             record += (x + 1) + '' + (y + 1) + '' + land.x + '' + land.y + '1' + land.x + '' + land.y;
