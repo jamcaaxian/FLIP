@@ -14,6 +14,7 @@ export default class Player {
         this.chessboard = this.chess.chessboard;
         this.moveFrom = {x: 0, y: 0};
         this.moveTo = {x: 0, y: 0};
+        this.record = [];
 
         this.data = this.resetData();
 
@@ -245,7 +246,7 @@ export default class Player {
     click(event) {
         const position = this.getPosition(event);
         let isSelected = false;
-
+        
         if (position) {
             for (const key in this.chess.data[this.team]) {
                 if (this.chess.data[this.team][key].x === position.x && this.chess.data[this.team][key].y === position.y) {
@@ -385,11 +386,11 @@ export default class Player {
                     this.chess.data[team][key].y = positionTo.y;
                     this.chess.update();
 
-                    this.data = this.resetData();
-                    this.update();
-
                     this.moveFrom = positionFrom;
                     this.moveTo = positionTo;
+
+                    this.data = this.resetData();
+                    this.update();
 
                     status = true;
                 }
@@ -423,6 +424,8 @@ export default class Player {
             this.data.forEach((row, x) => {
                 row.forEach((col, y) => {
                     if (col[1].isSelecting) {
+                        let record = [isRobot === (this.team === 'attacker') ? 0 : 1, 0, 0, 0, 0, 0, 0, 0];
+
                         if (position.x === 4 && position.y === 4) {
                             // 中心位置
                             let side;
@@ -435,6 +438,8 @@ export default class Player {
                             });
 
                             if (side == 0) {
+                                record[5] = 1;
+
                                 // 是反棋, 上岛
                                 const attackerLands = [
                                     {x: 1, y: 6},
@@ -464,7 +469,13 @@ export default class Player {
                                         if (isLandEmpty(land.x, land.y)) {
                                             Object.values(this.chess.data.attacker).find(item => item.x === x + 1 && item.y === y + 1).landed = true;
                                             this.moveChess({x: x + 1, y: y + 1}, land);
+                                            record[1] = x + 1;
+                                            record[2] = y + 1;
+                                            record[3] = land.x;
+                                            record[4] = land.y;
                                             this.flipChess(land);
+                                            record[6] = land.x;
+                                            record[7] = land.y;
                                             this.chessboard.land.push(1);
                                             break; // 成功找到并处理一个位置后退出
                                         }
@@ -477,7 +488,14 @@ export default class Player {
                                         if (isLandEmpty(land.x, land.y)) {
                                             Object.values(this.chess.data.defender).find(item => item.x === x + 1 && item.y === y + 1).landed = true;
                                             this.moveChess({x: x + 1, y: y + 1}, land);
+                                            record[1] = x + 1;
+                                            record[2] = y + 1;
+                                            record[3] = land.x;
+                                            record[4] = land.y;
                                             this.flipChess(land);
+                                            record[6] = land.x;
+                                            record[7] = land.y;
+                                            record += (x + 1) + '' + (y + 1) + '' + land.x + '' + land.y + '1' + land.x + '' + land.y;
                                             this.chessboard.land.push(1);
                                             break; // 成功找到并处理一个位置后退出
                                         }
@@ -491,28 +509,30 @@ export default class Player {
                         } else {
                             // 移动棋子
                             this.moveChess({x: x + 1, y: y + 1}, position);
-                            console.log(`Move Chess from (${x + 1}, ${y + 1}) to (${position.x}, ${position.y})`);
+                            record[1] = x + 1;
+                            record[2] = y + 1;
+                            record[3] = position.x;
+                            record[4] = position.y;
+                            console.log(`${isRobot === (this.team === 'attacker') ? 'White' : 'Black'} Move Chess from (${x + 1}, ${y + 1}) to (${position.x}, ${position.y})`);
 
                             // 翻转棋子
                             const flipPosition = {x: (position.x + x + 1) / 2, y: (position.y + y + 1) / 2};
                             if (Object.values(this.chess.data.attacker).find(item => item.x === flipPosition.x && item.y === flipPosition.y) ||
                                 Object.values(this.chess.data.defender).find(item => item.x === flipPosition.x && item.y === flipPosition.y)) {
                                 this.flipChess(flipPosition);
-                                console.log(`Flip Chess at (${flipPosition.x}, ${flipPosition.y})`);
+                                record[6] = flipPosition.x;
+                                record[7] = flipPosition.y;
+                                console.log(`${isRobot === (this.team === 'attacker') ? 'White' : 'Black'} Flip Chess at (${flipPosition.x}, ${flipPosition.y})`);
                             }
 
                             if (!isRobot) {
                                 window.robot.action();
                             }
                         }
+                        this.record.push(record.join(''));
                     }
                 });
             });
-        }
-        if (this.moveFrom.x!== 0 && this.moveTo.x!== 0 && this.moveFrom.y!== 0 && this.moveTo.y!== 0) {
-            this.highlight(this.moveFrom.x, this.moveFrom.y, this.highlightColor.moveFrom);
-            this.highlight(this.moveTo.x, this.moveTo.y, this.highlightColor.moveTo);
-            this.update();
         }
     }
 
