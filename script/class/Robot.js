@@ -16,20 +16,42 @@ export default class Robot {
 
 
         // 以下代码测试用
-        const keys = Object.keys(this.chess.data[this.team]);
-        const chess = this.chess.data[this.team][keys[Math.floor(Math.random() * keys.length)]];
-        player.select({x: chess.x, y: chess.y}, chess, true);
-        const movablePositions = [];
-        player.data.forEach((row, i) => { // 外层数组遍历，记录行索引 i
-            row.forEach((item, j) => { // 内层数组遍历，记录列索引 j
-                if (item[1].isPredicting) { // 检查 isPredicting 是否为 true
-                    movablePositions.push([i + 1, j + 1]); // 将索引 [i, j] 添加到 arr 中
-                }
+        this.randomRobot();
+    }
+
+    randomRobot() {
+        this.result = 0;
+        while (this.result === 0) {
+            // 随机选择一个棋子
+            const keys = Object.keys(this.chess.data[this.team]);
+            const chess = this.chess.data[this.team][keys[Math.floor(Math.random() * keys.length)]];
+            player.select({x: chess.x, y: chess.y}, chess, true);
+            // 获取所有可以移动的位置
+            const movablePositions = [];
+            player.data.forEach((row, i) => {
+                row.forEach((item, j) => {
+                    if (item[1].isPredicting) {
+                        movablePositions.push([i + 1, j + 1]);
+                    }
+                });
             });
-        });
-        const position = movablePositions[Math.floor(Math.random() * movablePositions.length)];
-        setTimeout(() => {
-            player.action({x: position[0], y: position[1]}, true);
-        }, 0);
+            // 如果没有可移动的位置，则重新选择棋子
+            if (movablePositions.length === 0) {
+                console.warn(`No movable positions for chess piece at (${chess.x}, ${chess.y}). Retrying...`);
+                continue;
+            }
+            // 随机选择一个位置
+            const position = movablePositions[Math.floor(Math.random() * movablePositions.length)];
+            // 如果 position 无效，则重新选择棋子
+            if (!position || position.length !== 2) {
+                console.warn('Invalid position selected. Retrying...');
+                continue;
+            }
+            // 如果 position 有效，更新状态并执行动作
+            this.result = 1;
+            setTimeout(() => {
+                player.action({x: position[0], y: position[1]}, true);
+            }, 0);
+        }
     }
 }

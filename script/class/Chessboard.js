@@ -2,6 +2,7 @@ export default class Chessboard {
     constructor(backgroundColor, hexagonColor, landColor, shadowColor, origin, size) {
         this.backgroundColor = backgroundColor;
         this.hexagonColor = hexagonColor;
+        this.land = [];
         this.landColor = landColor;
         this.shadowColor = shadowColor;
         this.origin = {x: origin[0], y: origin[1]};

@@ -86,19 +86,31 @@ export default class Player {
         });
 
         // If one of player won
-        const attackerSides = Object.values(this.chess.data.attacker).map(unit => unit.side);
-        const defenderSides = Object.values(this.chess.data.defender).map(unit => unit.side);
+        const attackerSides = Object.values(this.chess.data.attacker).filter(unit => unit.landed !== true).map(unit => unit.side);
+        const defenderSides = Object.values(this.chess.data.defender).filter(unit => unit.landed !== true).map(unit => unit.side);
         const isAllOne = sides => sides.every(side => side === 1);
         const isAllZero = sides => sides.every(side => side === 0);
 
         if (isAllOne(attackerSides) || isAllZero(defenderSides)) {
+            window.robot = {};
+            window.robot.action = () => {};
+            this.select = () => {};
             setTimeout(() => {
-                window.location.href = "win.html?team=attacker";
-            }, 3000);
+                if (confirm("Black chess win! Choose team to play again?")) {
+                    window.location.href = "index.html";
+                }
+            }, 100);
+            this.update = () => {};
         } else if (isAllOne(defenderSides) || isAllZero(attackerSides)) {
+            window.robot = {};
+            window.robot.action = () => {};
+            this.select = () => {};
             setTimeout(() => {
-                window.location.href = "win.html?team=defender";
-            }, 3000);
+                if (confirm("White chess win! Choose team to play again?")) {
+                    window.location.href = "index.html";
+                }
+            }, 100);
+            this.update = () => {};
         } else {
             return false;
         }
@@ -450,8 +462,10 @@ export default class Player {
                                     // 进攻方
                                     for (const land of attackerLands) {
                                         if (isLandEmpty(land.x, land.y)) {
+                                            Object.values(this.chess.data.attacker).find(item => item.x === x + 1 && item.y === y + 1).landed = true;
                                             this.moveChess({x: x + 1, y: y + 1}, land);
                                             this.flipChess(land);
+                                            this.chessboard.land.push(1);
                                             break; // 成功找到并处理一个位置后退出
                                         }
                                     }
@@ -461,8 +475,10 @@ export default class Player {
                                     // 防守方
                                     for (const land of defenderLands) {
                                         if (isLandEmpty(land.x, land.y)) {
+                                            Object.values(this.chess.data.defender).find(item => item.x === x + 1 && item.y === y + 1).landed = true;
                                             this.moveChess({x: x + 1, y: y + 1}, land);
                                             this.flipChess(land);
+                                            this.chessboard.land.push(1);
                                             break; // 成功找到并处理一个位置后退出
                                         }
                                     }
@@ -537,7 +553,13 @@ export default class Player {
                 x -= direction.x;
                 y -= direction.y;
                 if (x !== position.x || y !== position.y) {
-                    result.push({x: x, y: y});
+                    if (x === 4 && y === 4) {
+                        if (this.chessboard.land.length < 6) {
+                            result.push({x: x, y: y});
+                        }
+                    } else {
+                        result.push({x: x, y: y});
+                    }
                 }
             });
         }
