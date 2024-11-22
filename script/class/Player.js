@@ -495,7 +495,6 @@ export default class Player {
                                             record[5] = 1;
                                             record[6] = land.x;
                                             record[7] = land.y;
-                                            record += (x + 1) + '' + (y + 1) + '' + land.x + '' + land.y + '1' + land.x + '' + land.y;
                                             this.chessboard.land.push(1);
                                             break; // 成功找到并处理一个位置后退出
                                         }
@@ -530,6 +529,7 @@ export default class Player {
                             }
                         }
                         this.record.push(record.join(''));
+                        console.log(this.record);
                     }
                 });
             });
@@ -600,5 +600,43 @@ export default class Player {
         }
 
         return result;
+    }
+
+    loadRecord(max = record.length, interval = 0, record = this.record) {
+        this.chess.data = JSON.parse(JSON.stringify(this.chess.initialData));
+        this.chess.update();
+        this.data = this.resetData();
+        this.update();
+        this.record = [];
+        for (let index = 0; index < max; index++) {
+            this.record.push(record[index]);
+            setTimeout(() => {
+                const move = record[index];
+            
+                // 解析记录
+                const positionFrom = {
+                    x: parseInt(move[1]),
+                    y: parseInt(move[2]),
+                };
+                const positionTo = {
+                    x: parseInt(move[3]),
+                    y: parseInt(move[4]),
+                };
+                const isFlip = move[5] === '1';
+                const flipPosition = {
+                    x: parseInt(move[6]),
+                    y: parseInt(move[7]),
+                };
+            
+                // 执行动作
+                if (positionFrom.x !== 0 || positionFrom.y !== 0) {
+                    this.moveChess(positionFrom, positionTo); // 移动棋子
+                }
+            
+                if (isFlip && flipPosition.x !== 0 && flipPosition.y !== 0) {
+                    this.flipChess(flipPosition); // 翻转棋子
+                }
+            }, interval * index);
+        }
     }
 }

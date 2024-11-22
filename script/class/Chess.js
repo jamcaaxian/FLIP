@@ -3,7 +3,7 @@ export default class Chess {
         this.chessboard = chessboard;
 
         // 初始位置(x, y)和朝向(side): 0是反面, 1是正面
-        this.data = {
+        this.initialData = {
             attacker: {
                 a: {x: 1, y: 4, side: 0},
                 b: {x: 2, y: 5, side: 1},
@@ -25,6 +25,8 @@ export default class Chess {
             }
         };
 
+        this.data = JSON.parse(JSON.stringify(this.initialData));
+        
         this.generateCanvas();
 
         this.update();

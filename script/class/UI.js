@@ -98,13 +98,45 @@ export default class UI {
     }
 
     buttonB() {
+        // record 中的八位数字含义:
+        // 1. 白棋为 0, 黑棋为 1
+        // 2. 移动起点 x 坐标
+        // 3. 移动起点 y 坐标
+        // 4. 移动终点 x 坐标
+        // 5. 移动终点 y 坐标
+        // 6. 没有上岛为 0, 有上岛为 1
+        // 7. 没有翻转为 0, 其它值为翻转 x 坐标
+        // 8. 没有翻转为 0, 其它值为翻转 y 坐标
         navigator.clipboard.writeText(JSON.stringify(window.player.record, null, 2))
             .then(() => alert("对局记录已复制！\nThe game record has been copied!"))
             .catch(() => alert("复制失败！\nCopy failed!"));
     }
 
     buttonC() {
-        alert("Bug 提交功能暂未开放！\nThe Bug submission function is not open yet!");
+        let record, max, interval;
+    
+        // 获取棋谱输入
+        let input = prompt("从棋谱中加载对局\nLoad game from record\n请在此处粘贴棋谱：\nPaste the record here:");
+        if (!input) return;  // 如果没有输入棋谱，则直接返回
+    
+        // 尝试解析棋谱并判断格式
+        try {
+            record = JSON.parse(input);
+            if (!Array.isArray(record)) throw new Error("格式错误");
+        } catch (e) {
+            return alert("棋谱格式错误！\nRecord format error!");  // 如果解析失败，则提示错误
+        }
+    
+        // 获取加载到的步数
+        input = prompt("加载棋谱到第几步？（非必填）：\nLoad the record to which step? (Optional):");
+        max = (input && Number.isInteger(Number(input)) && record[input - 1]) ? Number(input) : record.length;
+    
+        // 获取每步加载的时间间隔
+        input = prompt("每步加载的时间间隔（单位：秒，非必填）：\nTime interval between each step (Seconds, Optional):");
+        interval = (input && !isNaN(input) && input >= 0) ? input * 1000 : 0;  // 默认为0秒
+    
+        // 调用 loadRecord 函数
+        window.player.loadRecord(max, interval, record);
     }
 
     animateShadow() {
