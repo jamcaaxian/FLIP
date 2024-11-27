@@ -501,6 +501,8 @@ export default class Player {
                                     }
                                 }
 
+                                this.record.push(record.join(''));
+
                                 if (!isRobot) {
                                     window.robot.action();
                                 }
@@ -524,12 +526,12 @@ export default class Player {
                                 console.log(`${isRobot === (this.team === 'attacker') ? 'White' : 'Black'} Flip Chess at (${flipPosition.x}, ${flipPosition.y})`);
                             }
 
+                            this.record.push(record.join(''));
+
                             if (!isRobot) {
                                 window.robot.action();
                             }
                         }
-                        this.record.push(record.join(''));
-                        console.log(this.record);
                     }
                 });
             });
@@ -622,7 +624,7 @@ export default class Player {
                     x: parseInt(move[3]),
                     y: parseInt(move[4]),
                 };
-                const isFlip = move[5] === '1';
+                // const isFlip = move[5] === '1';
                 const flipPosition = {
                     x: parseInt(move[6]),
                     y: parseInt(move[7]),
@@ -633,7 +635,7 @@ export default class Player {
                     this.moveChess(positionFrom, positionTo); // 移动棋子
                 }
             
-                if (isFlip && flipPosition.x !== 0 && flipPosition.y !== 0) {
+                if (flipPosition.x !== 0 && flipPosition.y !== 0) {
                     this.flipChess(flipPosition); // 翻转棋子
                 }
             }, interval * index);

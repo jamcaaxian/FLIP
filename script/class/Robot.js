@@ -2,21 +2,35 @@ export default class Robot {
     constructor(chess, team) {
         this.chess = chess;
         this.team = team;
-        this.matrix = Array.from({ length: 7 }, () => Array(7).fill(0));
+        this.updateMatrix();
     }
 
-    action() { // Will run before player's turn
-        Object.entries(this.chess.data.attacker).forEach(([key, { x, y, side }]) => {
+    updateMatrix() {
+        this.matrix = Array.from({ length: 7 }, () => Array(7).fill(0));
+
+        Object.entries(this.chess.data[this.team]).forEach(([key, { x, y, side }]) => {
             this.matrix[y - 1][x - 1] = side === 0 ? -1 : 1; // attacker: side 0 is -1，side 1 is 1
         });
 
-        Object.entries(this.chess.data.defender).forEach(([key, { x, y, side }]) => {
+        Object.entries(this.chess.data[this.team === "attacker" ? "defender" : "attacker"]).forEach(([key, { x, y, side }]) => {
             this.matrix[y - 1][x - 1] = side === 0 ? -2 : 2; // defender: side 0 is -2，side 1 is 2
         });
 
+        this.matrix[0].splice(4, 3);
+        this.matrix[1].splice(5, 2);
+        this.matrix[2].splice(6, 1);
+        this.matrix[4].splice(0, 1);
+        this.matrix[5].splice(0, 2);
+        this.matrix[6].splice(0, 3);
+    }
+
+    action() { // Will run after player's turn
+        this.updateMatrix();
 
         // 以下代码测试用
         this.randomRobot();
+
+        this.updateMatrix();
     }
 
     randomRobot() {
@@ -49,9 +63,7 @@ export default class Robot {
             }
             // 如果 position 有效，更新状态并执行动作
             this.result = 1;
-            setTimeout(() => {
-                player.action({x: position[0], y: position[1]}, true);
-            }, 0);
+            player.action({x: position[0], y: position[1]}, true);
         }
     }
 }
