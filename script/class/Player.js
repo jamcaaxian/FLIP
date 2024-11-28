@@ -1,5 +1,5 @@
 export default class Player {
-    constructor(chess, team, isRobot = false,highlightColor = {
+    constructor(chess, team, mode = 'pve',highlightColor = {
         select: '#DDFF44',
         cursor: '#DDFF4480',
         predict: '#3388FF',
@@ -8,7 +8,7 @@ export default class Player {
     }, gamepadSensitivity = 0.5) {
         this.chess = chess;
         this.team = team;
-        this.isRobot = isRobot;
+        this.mode = mode;
         this.highlightColor = highlightColor;
         this.gamepadSensitivity = gamepadSensitivity;
         this.chessboard = this.chess.chessboard;
@@ -43,6 +43,10 @@ export default class Player {
         this.generateCanvas();
 
         this.update();
+    }
+
+    removeCanvas() {
+        this.canvas.remove();
     }
 
     update() {
@@ -129,22 +133,20 @@ export default class Player {
         this.canvas.style.backgroundColor = "#00000000";
         document.body.appendChild(this.canvas);
 
-        if (!this.isRobot) {
-            // 添加事件监听器
-            this.canvas.addEventListener('click', (event) => this.click(event));
-            this.canvas.addEventListener('mousemove', (event) => this.hover(event));
+        // 添加事件监听器
+        this.canvas.addEventListener('click', (event) => this.click(event));
+        this.canvas.addEventListener('mousemove', (event) => this.hover(event));
 
-            // 添加游戏手柄事件监听器
-            window.addEventListener('gamepadconnected', (event) => {
-                document.body.style.cursor = 'none';
-                console.log(`Gamepad: ${event.gamepad.id} connected.`);
-                this.gamepad();
-            });
-            window.addEventListener('gamepaddisconnected', (event) => {
-                document.body.style.cursor = 'auto';
-                console.log(`Gamepad: ${event.gamepad.id} disconnected.`);
-            });
-        }
+        // 添加游戏手柄事件监听器
+        window.addEventListener('gamepadconnected', (event) => {
+            document.body.style.cursor = 'none';
+            console.log(`Gamepad: ${event.gamepad.id} connected.`);
+            this.gamepad();
+        });
+        window.addEventListener('gamepaddisconnected', (event) => {
+            document.body.style.cursor = 'auto';
+            console.log(`Gamepad: ${event.gamepad.id} disconnected.`);
+        });
     }
 
     highlight(x, y, color = 0) {
@@ -503,8 +505,10 @@ export default class Player {
 
                                 this.record.push(record.join(''));
 
-                                if (!isRobot) {
+                                if (!isRobot && this.mode === 'pve') {
                                     window.robot.action();
+                                } else if (this.mode === 'pvp') {
+                                    window.changeTeam(this.team, this.record);
                                 }
                             }
                         } else {
@@ -528,8 +532,10 @@ export default class Player {
 
                             this.record.push(record.join(''));
 
-                            if (!isRobot) {
+                            if (!isRobot && this.mode === 'pve') {
                                 window.robot.action();
+                            } else if (this.mode === 'pvp') {
+                                window.changeTeam(this.team, this.record);
                             }
                         }
                     }

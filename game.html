@@ -1,10 +1,39 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Chess</title>
+        <title>FLIP</title>
         <link rel="stylesheet" href="style/main.css">
     </head>
     <body>
-        <script type="module" src="script/runtime.js"></script>
+        <script>
+            function loadScript(url, callback) {
+                const script = document.createElement("script");
+                script.type = "module";
+                script.src = url;
+
+                if (callback) {
+                    script.onload = () => callback(null);
+                    script.onerror = (error) => callback(error);
+                }
+
+                document.body.appendChild(script);
+            }
+
+            let parms = new URLSearchParams(window.location.search), url;
+
+            if (parms.get('mode') === 'pvp') {
+                url = 'script/pvp.js';
+            } else {
+                url = 'script/pve.js';
+            }
+
+            loadScript(url, error => {
+                if (error) {
+                    console.error(`load ${url} failed: `, error);
+                } else {
+                    console.log(`${url} is loaded`);
+                }
+            });
+        </script>
     </body>
 </html>

@@ -10,6 +10,10 @@ export default class UI {
         this.addEventListeners();
     }
 
+    removeCanvas() {
+        this.canvas.remove();
+    }
+
     generateCanvas() {
         this.canvas = document.createElement('canvas');
         this.canvas.id = 'ui';
