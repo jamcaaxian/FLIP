@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COLOR</title>
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 20px;
+    }
+    #frequency {
+    font-size: 2em;
+    margin-top: 20px;
+    }
+    #volume {
+    font-size: 1em;
+    color: gray;
+    }
+</style>
+</head>
+<body>
+<div id="display">
+    VOLUME_THRESHOLD: <input id="volume" value="0.02">
+    <br>
+    <br>
+    <button id="start">START</button>
+</div>
+
+
+<script>
+    const startButton = document.getElementById('start');
+
+    let audioContext;
+    let analyser;
+    let dataArray;
+    let source;
+    let bufferLength;
+    let VOLUME_THRESHOLD = 0.02; // 设置音量阈值
+
+    async function startTuning() {
+        // 获取麦克风输入
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
+        bufferLength = analyser.fftSize;
+        dataArray = new Float32Array(bufferLength);
+
+        source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
+
+        analyzeAudio();
+    }
+
+    function analyzeAudio() {
+        analyser.getFloatTimeDomainData(dataArray);
+
+        // 计算音量 (RMS)
+        const rms = calculateRMS(dataArray);
+
+        // 只有当音量超过阈值时才检测频率
+        if (rms > VOLUME_THRESHOLD) {
+            const frequency = detectPitch(dataArray, audioContext.sampleRate);
+            if (frequency) {
+                
+                if (frequency <= 0) {
+                    let noteName = false;
+                } else {
+                    const noteNames = [
+                        "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+                    ];
+
+                    // C-2 的 MIDI 编号是 0，对应频率为 8.18 Hz
+                    // G8 的 MIDI 编号是 127，对应频率为 12543.85 Hz
+                    const A4 = 440; // 基准频率
+                    const A4_MIDI = 69; // A4 的 MIDI 音符编号
+
+                    // 计算 MIDI 音符编号
+                    const midiNumber = Math.round(12 * Math.log2(frequency / A4) + A4_MIDI);
+
+                    // 检查是否超出 C-2 (MIDI 0) 到 G8 (MIDI 127) 的范围
+                    if (midiNumber < 0 || midiNumber > 127) {
+                        noteName = false;
+                    } else {
+                        // 计算音名和所在的八度
+                        const noteIndex = midiNumber % 12; // 音名索引
+                        const octave = Math.floor(midiNumber / 12) - 1; // 八度范围从 C-2 开始
+
+                        let noteName = noteNames[noteIndex] + octave;
+
+                        switch (noteNames[noteIndex]) {
+                            case "C":
+                                document.body.style.backgroundColor = "#E8A7A1"; // Bocchi
+                                break;
+                            case "C#":
+                                document.body.style.backgroundColor = "#881188"; // Yukina
+                                break;
+                            case "D":
+                                document.body.style.backgroundColor = "#77DD77"; // Raana
+                                break;
+                            case "D#":
+                                document.body.style.backgroundColor = "#FF5522"; // Kasumi
+                                break;
+                            case "E":
+                                document.body.style.backgroundColor = "#0077DD"; // Tae
+                                break;
+                            case "F":
+                                document.body.style.backgroundColor = "#FFBB11"; // Yang
+                                break;
+                            case "F#":
+                                document.body.style.backgroundColor = "#00CCAA"; // Moka
+                                break;
+                            case "G":
+                                document.body.style.backgroundColor = "#AA66DD"; // Arisa
+                                break;
+                            case "G#":
+                                document.body.style.backgroundColor = "#388FFF"; // Yang
+                                break;
+                            case "A":
+                                document.body.style.backgroundColor = "#BBBBBB"; // Rinko
+                                break;
+                            case "A#":
+                                document.body.style.backgroundColor = "#FF8899"; // Anon
+                                break;
+                            case "B":
+                                document.body.style.backgroundColor = "#77BBDD"; // Tomori
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+        requestAnimationFrame(analyzeAudio);
+    }
+
+    function calculateRMS(buffer) {
+        let rms = 0;
+        for (let i = 0; i < buffer.length; i++) {
+            rms += buffer[i] * buffer[i];
+        }
+        return Math.sqrt(rms / buffer.length);
+    }
+
+    function detectPitch(buffer, sampleRate) {
+        let SIZE = buffer.length;
+
+        let r1 = 0, r2 = SIZE - 1, thres = 0.2;
+        for (let i = 0; i < SIZE / 2; i++) {
+            if (Math.abs(buffer[i]) < thres) {
+            r1 = i;
+            break;
+            }
+        }
+        for (let i = 1; i < SIZE / 2; i++) {
+            if (Math.abs(buffer[SIZE - i]) < thres) {
+            r2 = SIZE - i;
+            break;
+            }
+        }
+
+        buffer = buffer.slice(r1, r2);
+        SIZE = buffer.length;
+
+        let c = new Array(SIZE).fill(0);
+        for (let i = 0; i < SIZE; i++) {
+            for (let j = 0; j < SIZE - i; j++) {
+            c[i] = c[i] + buffer[j] * buffer[j + i];
+            }
+        }
+
+        let d = 0;
+        while (c[d] > c[d + 1]) d++;
+        let maxval = -1, maxpos = -1;
+        for (let i = d; i < SIZE; i++) {
+            if (c[i] > maxval) {
+            maxval = c[i];
+            maxpos = i;
+            }
+        }
+
+        let T0 = maxpos;
+
+        // 精确化
+        let x1 = c[T0 - 1],
+            x2 = c[T0],
+            x3 = c[T0 + 1];
+        let a = (x1 + x3 - 2 * x2) / 2;
+        let b = (x3 - x1) / 2;
+        if (a) T0 = T0 - b / (2 * a);
+
+        let pitch = sampleRate / T0;
+
+        // 限制频率范围
+        const MAX_FREQUENCY = 5000; // 设置最大频率限制为 2000 Hz
+        if (pitch > MAX_FREQUENCY) {
+            return 0; // 如果频率过高，则认为没有有效频率
+        }
+
+        return pitch;
+    }
+
+    startButton.addEventListener('click', () => {
+        let VOLUME_THRESHOLD = parseFloat(document.getElementById('volume').value) || 0.02;
+        document.getElementById('display').style.display = 'none';
+        startTuning();
+    });
+</script>
+</body>
+</html>
