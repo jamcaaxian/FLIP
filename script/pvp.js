@@ -114,6 +114,11 @@ class Room {
                 loadRecord(data.record);
             } else if (data.type === 'chat') {
                 displayMessage(data.message);
+                if (data.message[1] === '/z' || data.message[1] === '/undo' || data.message[1] === '/悔棋') {
+                    player.record.pop();
+                    loadRecord(player.record);
+                    displayMessage(['💻服务器', '已悔棋']);
+                }
             }
         };
     }
