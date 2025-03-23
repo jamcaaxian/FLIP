@@ -1,49 +1,55 @@
 <!DOCTYPE html>
-    <head>
-        <title>阴阳怪棋 - FLIP</title>
-    </head>
-    <body>
-        <h1 style="text-align: center;">阴 阳 怪 棋</h1>
-        <h2 style="text-align: center;">F L I P</h2>
+<html lang="zh">
 
-        <!-- 一级选择 -->
-        <div style="display: block; margin: 20px; text-align: center;">
-            <label for="mode" style="height: 60px; font-size: 20px;">游戏模式 (Game Mode):</label>
-            <select id="mode" style="height: 60px; font-size: 20px;">
-                <option value="pvp">双人对战 (Player vs. Player)</option>
-                <option value="pve">人机对战 (Player vs. Robot)</option>
-            </select>
-        </div>
+<head>
+    <title>阴阳怪棋 - FLIP</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
 
-        <!-- 二级选择 -->
-        <div id="team-select" style="display: none; margin: 20px; text-align: center;">
-            <label for="team" style="height: 60px; font-size: 20px;">玩家队伍 (Player Team):</label>
-            <select id="team" style="height: 60px; font-size: 20px;">
-                <option value="">黑棋先手方 (Black Chess Attacker)</option>
-                <option value="defender">白棋后手方 (White Chess Defender)</option>
-            </select>
-        </div>
+<body>
+    <h1 style="text-align: center;">阴 阳 怪 棋</h1>
+    <h2 style="text-align: center;">F L I P</h2>
 
-        <div style="display: block; margin: 20px; text-align: center;">
-            <button onclick="start()" style="height: 60px; font-size: 20px;">开始游戏 (Start Game)</button>
-        </div>
+    <!-- 一级选择 -->
+    <div style="display: block; margin: 20px; text-align: center;">
+        <label for="mode" style="height: 60px; font-size: 20px;">游戏模式 (Game Mode):</label>
+        <select id="mode" style="height: 60px; font-size: 20px;">
+            <option value="pvp">双人对战 (Player vs. Player)</option>
+            <option value="pve">人机对战 (Player vs. Robot)</option>
+        </select>
+    </div>
 
-        <script>
-            function start() {
-                const mode = document.getElementById('mode').value || '';
-                const team = document.getElementById('team').value || '';
-                window.location.href = `game.html?mode=${mode}${team === '' ? '' : '&team=' + team}`;
+    <!-- 二级选择 -->
+    <div id="team-select" style="display: none; margin: 20px; text-align: center;">
+        <label for="team" style="height: 60px; font-size: 20px;">玩家队伍 (Player Team):</label>
+        <select id="team" style="height: 60px; font-size: 20px;">
+            <option value="">黑棋先手方 (Black Chess Attacker)</option>
+            <option value="defender">白棋后手方 (White Chess Defender)</option>
+        </select>
+    </div>
+
+    <div style="display: block; margin: 20px; text-align: center;">
+        <button onclick="start()" style="height: 60px; font-size: 20px;">开始游戏 (Start Game)</button>
+    </div>
+
+    <script>
+        function start() {
+            const mode = document.getElementById('mode').value || '';
+            const team = document.getElementById('team').value || '';
+            window.location.href = `game.html?mode=${mode}${team === '' ? '' : '&team=' + team}`;
+        }
+
+        document.getElementById('mode').addEventListener('change', function () {
+            if (document.getElementById('mode').value === 'pve') {
+                document.getElementById('team-select').style.display = 'block';
+                document.getElementById('team').childNodes[1].value = 'attacker';
+            } else {
+                document.getElementById('team-select').style.display = 'none';
+                document.getElementById('team').childNodes[1].value = '';
             }
+        });
+    </script>
+</body>
 
-            document.getElementById('mode').addEventListener('change', function() {
-                if (document.getElementById('mode').value === 'pve') {
-                    document.getElementById('team-select').style.display = 'block';
-                    document.getElementById('team').childNodes[1].value = 'attacker';
-                } else {
-                    document.getElementById('team-select').style.display = 'none';
-                    document.getElementById('team').childNodes[1].value = '';
-                }
-            });
-        </script>
-    </body>
 </html>
